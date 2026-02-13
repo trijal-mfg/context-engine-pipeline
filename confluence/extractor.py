@@ -3,7 +3,7 @@ import logging
 import hashlib
 import asyncio
 from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from confluence_client import ConfluenceClient
 from storage import (

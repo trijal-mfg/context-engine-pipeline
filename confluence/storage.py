@@ -1,3 +1,7 @@
+"""
+THis is a temp storage module, as the data grows storage will probably move to s3/back to confluence or some db
+"""
+
 
 import json
 import os
