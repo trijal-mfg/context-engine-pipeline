@@ -4,10 +4,10 @@ import logging
 import sys
 from datetime import datetime
 
-from config import setup_logging, ensure_directories
+from config import setup_logging
 from extractor import Extractor
 
-# Setup logging immediately
+# Setup logging 
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -15,10 +15,7 @@ async def main():
     logger.info("Starting Confluence Extraction Service")
     start_time = datetime.now()
     
-    try:
-        # Ensure data directories exist
-        ensure_directories()
-        
+    try:        
         # Initialize and run extractor
         extractor = Extractor()
         stats = await extractor.run()

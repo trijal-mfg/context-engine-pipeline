@@ -65,8 +65,15 @@ async def save_raw_content(space_key: str, page_id: str, version: int, content: 
     
     return str(filename)
 
-async def save_metadata(page_id: str, metadata: Dict[str, Any]):
+async def save_metadata(space_key: str, page_id: str, metadata: Dict[str, Any]):
     """Save structured metadata to disk."""
+
+    directory = RAW_DIR / space_key / page_id
+    filename = directory / f"metadata.json"
+    async with aiofiles.open(filename, 'w') as f:
+        await f.write(json.dumps(metadata, indent=2))
+
+    #dedeicated metadata directory for metadata storage    
     meta_path = META_DIR / f"{page_id}.json"
     async with aiofiles.open(meta_path, 'w') as f:
         await f.write(json.dumps(metadata, indent=2))

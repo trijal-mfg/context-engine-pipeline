@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Extractor:
     def __init__(self):
-        self.client = ConfluenceClient()
+        self.client = ConfluenceClient() # Initialize Confluence client
         self.stats = {
             "fetched": 0,
             "skipped": 0,
@@ -27,7 +27,7 @@ class Extractor:
         }
 
     def _compute_hash(self, content: str) -> str:
-        return hashlib.sha256(content.encode('utf-8')).hexdigest()
+        return hashlib.sha256(content.encode('utf-8')).hexdigest() #hash for veryfing content modifications
 
     def _extract_metadata(self, page_data: Dict[str, Any], raw_path: str, content_hash: str) -> Dict[str, Any]:
         """
@@ -50,7 +50,7 @@ class Extractor:
             "depth": len(ancestor_ids),
             "content_hash": content_hash,
             "raw_path": str(raw_path),
-            "is_deleted": False, # Basic search doesn't return deleted pages
+            "is_deleted": False, 
             "updated_at": datetime.utcnow().isoformat() + "Z"
         }
 
@@ -83,7 +83,7 @@ class Extractor:
             
             # Build and Save Metadata
             metadata = self._extract_metadata(page, raw_path, content_hash)
-            await save_metadata(page_id, metadata)
+            await save_metadata(space_key, page_id, metadata)
             
             logger.info(f"Updated page {page_id} to version {new_version}")
             self.stats["updated"] += 1
@@ -104,17 +104,8 @@ class Extractor:
                 self.stats["fetched"] += 1
                 await self.process_page(page)
                 
-            # Only update sync state if no critical system errors occurred.
-            # Page-level errors are logged but don't stop the sync date update 
-            # (unless we want to strict retry, but specs say "If one page fails, log and continue")
-            # "If system-level failure occurs, exit with error" -> Caught in main.
-            
-            # We use the current time for the next sync, or the max LastModified seen? 
-            # Using current time is safer to avoid gaps, but might re-fetch if clocks skew.
-            # Better to use the time the sync started.
-            
-            # Specs: "Only update last_sync_date AFTER successful full execution"
-            new_sync_date = datetime.utcnow().isoformat() + "Z"
+            # Update sync state, new date for next extraction
+            new_sync_date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
             update_last_sync_date(new_sync_date)
             
         except Exception as e:

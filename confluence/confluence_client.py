@@ -5,7 +5,7 @@ import asyncio
 from typing import AsyncGenerator, Dict, Any, List
 from urllib.parse import urljoin
 
-from config import CONFLUENCE_URL, CONFLUENCE_USERNAME, CONFLUENCE_API_TOKEN
+from config import CONFLUENCE_URL, CONFLUENCE_USERNAME, CONFLUENCE_API_TOKEN, CONFLUENCE_CLIENT_RETRIES, CONFLUENCE_CLIENT_PAGE_LIMIT
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class ConfluenceClient:
         Make an HTTP request with retries and error handling.
         """
         url = urljoin(self.base_url, endpoint)
-        retries = 3
+        retries = CONFLUENCE_CLIENT_RETRIES
         
         for attempt in range(retries):
             try:
@@ -60,10 +60,11 @@ class ConfluenceClient:
         """
         Yields pages updated since the given date.
         """
-        cql = f"type=page AND lastModified > '{since_date}' ORDER BY lastModified"
+        # CQL query to fetch updated pages
+        cql = f"type=page AND lastmodified > '{since_date}' ORDER BY lastmodified"
         
         start = 0
-        limit = 50
+        limit = CONFLUENCE_CLIENT_PAGE_LIMIT
         
         async with httpx.AsyncClient(timeout=self.timeout, limits=self.limits) as client:
             while True:
@@ -78,7 +79,6 @@ class ConfluenceClient:
                     data = await self._make_request(client, "GET", "content/search", params)
                 except Exception as e:
                     logger.error(f"Failed to fetch pages: {e}")
-                    # In a real scenario we might want to bubble this up to abort the sync
                     raise
 
                 results = data.get("results", [])

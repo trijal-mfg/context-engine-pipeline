@@ -16,7 +16,7 @@ CONFLUENCE_API_TOKEN = os.getenv("CONFLUENCE_API_TOKEN")
 
 # Sync State
 SYNC_STATE_FILE = STATE_DIR / "sync_state.json"
-DEFAULT_SYNC_DATE = "1900-01-01T00:00:00Z" # Default sync date only for first extraction, later it will be updated to last sync date
+DEFAULT_SYNC_DATE = "1970-01-01 00:00" # Default sync date only for first extraction, later it will be updated to last sync date
 
 # Logging Configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
