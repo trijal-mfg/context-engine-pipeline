@@ -5,9 +5,10 @@ from pathlib import Path
 
 # Base directory for data
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
-RAW_DIR = DATA_DIR / "raw"
-META_DIR = DATA_DIR / "meta"
-STATE_DIR = DATA_DIR / "state"
+CONFLUENCE_DATA_DIR = DATA_DIR / "confluence"
+RAW_DIR = CONFLUENCE_DATA_DIR / "raw"
+META_DIR = CONFLUENCE_DATA_DIR / "meta"
+STATE_DIR = CONFLUENCE_DATA_DIR / "state"
 
 # Concfluence Settings
 CONFLUENCE_URL = os.getenv("CONFLUENCE_URL")
