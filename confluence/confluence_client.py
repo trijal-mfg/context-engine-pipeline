@@ -18,14 +18,11 @@ logger = logging.getLogger(__name__)
 class ConfluenceClient:
     def __init__(self):
         base = CONFLUENCE_URL.rstrip("/")
-
-        # Always keep domain only (no /wiki duplication issues)
         if base.endswith("/wiki"):
             self.domain = base[:-5]
         else:
             self.domain = base
 
-        # Canonical API base for Confluence Cloud
         self.base_url = self.domain + "/wiki/rest/api/"
 
         self.auth = (CONFLUENCE_USERNAME, CONFLUENCE_API_TOKEN)
@@ -130,7 +127,7 @@ class ConfluenceClient:
                         "content/search",
                         {
                             "cql": cql,
-                            "expand": "body.storage,version,ancestors,space",
+                            "expand": "body.atlas_doc_format,version,ancestors,space",
                             "limit": limit,
                         },
                     )

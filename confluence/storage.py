@@ -63,9 +63,9 @@ async def save_raw_content(space_key: str, page_id: str, version: int, content: 
     directory = RAW_DIR / space_key / page_id
     directory.mkdir(parents=True, exist_ok=True)
     
-    filename = directory / f"version_{version}.xml"
+    filename = directory / f"version_{version}.json"
     async with aiofiles.open(filename, 'w') as f:
-        await f.write(content)
+        await f.write(json.dumps(content))
     
     return str(filename)
 

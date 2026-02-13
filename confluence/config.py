@@ -2,6 +2,10 @@
 import os
 import logging
 from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables from .env file
+load_dotenv(find_dotenv())
 
 # Base directory for data
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))

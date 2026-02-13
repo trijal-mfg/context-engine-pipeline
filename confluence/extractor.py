@@ -72,9 +72,9 @@ class Extractor:
 
         # Extract content
         try:
-            body = page.get("body", {}).get("storage", {}).get("value", "")
+            body = page.get("body", {}).get("atlas_doc_format", {}).get("value", "")
             space_key = page.get("space", {}).get("key", "UNKNOWN")
-            
+
             # Save Raw
             raw_path = await save_raw_content(space_key, page_id, new_version, body)
             
