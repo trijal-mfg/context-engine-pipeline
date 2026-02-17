@@ -4,8 +4,8 @@ import logging
 import sys
 from datetime import datetime
 
-from config import setup_logging
-from extractor import Extractor
+from .config import setup_logging
+from .extractor import Extractor
 
 # Setup logging 
 setup_logging()

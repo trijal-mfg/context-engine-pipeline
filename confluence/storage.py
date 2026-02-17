@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any, List
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import UpdateOne
 
-from config import MONGO_URI, MONGO_DB_NAME, DEFAULT_SYNC_DATE
+from .config import MONGO_URI, MONGO_DB_NAME, DEFAULT_SYNC_DATE
 
 logger = logging.getLogger(__name__)
 
@@ -89,3 +89,25 @@ class MongoStorage:
             logger.error(f"Failed to save metadata for {page_id}: {e}")
             raise
 
+
+    async def get_all_pages(self):
+        """
+        Yields all pages with their metadata and content.
+        Yields: (metadata, content)
+        """
+        cursor = self.pages_col.find({})
+        async for metadata in cursor:
+            page_id = metadata["_id"]
+            latest_version_id = metadata.get("latest_version_id")
+            
+            if not latest_version_id:
+                logger.warning(f"Page {page_id} has no latest_version_id, skipping.")
+                continue
+                
+            version_doc = await self.versions_col.find_one({"_id": latest_version_id})
+            if not version_doc:
+                logger.warning(f"Version {latest_version_id} not found for page {page_id}, skipping.")
+                continue
+            
+            content = version_doc.get("content")
+            yield metadata, content
