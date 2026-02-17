@@ -6,19 +6,14 @@ from typing import Dict, Any, List
 from datetime import datetime, timezone
 
 from confluence_client import ConfluenceClient
-from storage import (
-    get_metadata, 
-    save_raw_content, 
-    save_metadata, 
-    get_last_sync_date,
-    update_last_sync_date
-)
+from storage import MongoStorage
 
 logger = logging.getLogger(__name__)
 
 class Extractor:
     def __init__(self):
-        self.client = ConfluenceClient() # Initialize Confluence client
+        self.client = ConfluenceClient()
+        self.storage = MongoStorage()
         self.stats = {
             "fetched": 0,
             "skipped": 0,
@@ -27,9 +22,9 @@ class Extractor:
         }
 
     def _compute_hash(self, content: str) -> str:
-        return hashlib.sha256(content.encode('utf-8')).hexdigest() #hash for veryfing content modifications
+        return hashlib.sha256(content.encode('utf-8')).hexdigest()
 
-    def _extract_metadata(self, page_data: Dict[str, Any], raw_path: str, content_hash: str) -> Dict[str, Any]:
+    def _extract_metadata(self, page_data: Dict[str, Any], content_hash: str) -> Dict[str, Any]:
         """
         Transform Confluence API response into stored metadata format.
         """
@@ -49,7 +44,6 @@ class Extractor:
             "ancestor_ids": ancestor_ids,
             "depth": len(ancestor_ids),
             "content_hash": content_hash,
-            "raw_path": str(raw_path),
             "is_deleted": False, 
             "updated_at": datetime.utcnow().isoformat() + "Z"
         }
@@ -62,7 +56,7 @@ class Extractor:
         new_version = page.get("version", {}).get("number", 1)
         
         # Check existing metadata
-        existing_meta = get_metadata(page_id)
+        existing_meta = await self.storage.get_metadata(page_id)
         
         if existing_meta:
             if existing_meta.get("version") == new_version:
@@ -73,17 +67,21 @@ class Extractor:
         # Extract content
         try:
             body = page.get("body", {}).get("atlas_doc_format", {}).get("value", "")
-            space_key = page.get("space", {}).get("key", "UNKNOWN")
-
-            # Save Raw
-            raw_path = await save_raw_content(space_key, page_id, new_version, body)
             
             # Compute Hash
             content_hash = self._compute_hash(body)
             
-            # Build and Save Metadata
-            metadata = self._extract_metadata(page, raw_path, content_hash)
-            await save_metadata(space_key, page_id, metadata)
+            # Build Metadata
+            metadata = self._extract_metadata(page, content_hash)
+            
+            # Save using MongoStorage Transaction-like method
+            await self.storage.save_page(
+                page_id=page_id,
+                metadata=metadata,
+                content=body,
+                version=new_version,
+                content_hash=content_hash
+            )
             
             logger.info(f"Updated page {page_id} to version {new_version}")
             self.stats["updated"] += 1
@@ -96,7 +94,10 @@ class Extractor:
         """
         Main execution loop.
         """
-        last_sync = get_last_sync_date()
+        # Ensure indexes
+        await self.storage.ensure_indexes()
+
+        last_sync = await self.storage.get_last_sync_date()
         logger.info(f"Starting sync from {last_sync}")
         
         try:
@@ -104,9 +105,9 @@ class Extractor:
                 self.stats["fetched"] += 1
                 await self.process_page(page)
                 
-            # Update sync state, new date for next extraction
+            # Update sync state
             new_sync_date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
-            update_last_sync_date(new_sync_date)
+            await self.storage.update_last_sync_date(new_sync_date)
             
         except Exception as e:
             logger.error(f"System-level failure during sync: {e}")
