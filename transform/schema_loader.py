@@ -1,45 +1,43 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Type
 import logging
+from pydantic import BaseModel
 
 from config import MONGO_URI, MONGO_DB_NAME
+from model_factory import ModelFactory
 
 logger = logging.getLogger(__name__)
 
 class SchemaLoader:
     """
-    Loads and caches schemas from MongoDB.
+    Loads schemas from MongoDB and converts them to Pydantic models.
     """
     def __init__(self):
         self.client = AsyncIOMotorClient(MONGO_URI)
         self.db = self.client[MONGO_DB_NAME]
         self.schemas_col = self.db["schemas"]
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._model_cache: List[Type[BaseModel]] = []
 
-    async def get_schema(self, schema_id: str) -> Optional[Dict[str, Any]]:
+    async def get_all_models(self) -> List[Type[BaseModel]]:
         """
-        Retrieve a schema by ID. Uses in-memory cache to reduce DB hits.
+        Retrieve all available schemas as Pydantic models.
         """
-        if schema_id in self._cache:
-            return self._cache[schema_id]
-
-        schema_doc = await self.schemas_col.find_one({"_id": schema_id})
-        
-        if schema_doc:
-            self._cache[schema_id] = schema_doc
-            return schema_doc
-        
-        logger.warning(f"Schema not found: {schema_id}")
-        return None
-
-    async def get_all_schemas(self) -> Dict[str, Dict[str, Any]]:
-        """
-        Retrieve all available schemas. Useful for the classifier.
-        """
-        # Refresh cache if empty or on demand (could make this smarter later)
-        if not self._cache:
+        # Refresh cache if empty (simple caching strategy)
+        if not self._model_cache:
             cursor = self.schemas_col.find({})
+            models = []
             async for doc in cursor:
-                self._cache[doc["_id"]] = doc
+                try:
+                    model = ModelFactory.create_pydantic_model(doc)
+                    models.append(model)
+                except Exception as e:
+                    logger.error(f"Failed to create model for schema {doc.get('_id')}: {e}")
+            
+            self._model_cache = models
         
-        return self._cache
+        return self._model_cache
+
+    async def refresh_cache(self):
+        """Force refresh of the schema cache."""
+        self._model_cache = []
+        await self.get_all_models()
