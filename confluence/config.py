@@ -22,9 +22,19 @@ DEFAULT_SYNC_DATE = "1970-01-01 00:00" # Default sync date only for first extrac
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 
+
 # Confluence Client Settings
 CONFLUENCE_CLIENT_PAGE_LIMIT = int(os.getenv("CONFLUENCE_CLIENT_PAGE_LIMIT", 50))
 CONFLUENCE_CLIENT_RETRIES = int(os.getenv("CONFLUENCE_CLIENT_RETRIES", 3))
+
+# Ollama Settings
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "nomic-embed-text")
+
+# Vector Store Settings
+MONGO_VECTOR_COLLECTION = os.getenv("MONGO_VECTOR_COLLECTION", "vector_store")
+MONGO_VECTOR_INDEX_NAME = os.getenv("MONGO_VECTOR_INDEX_NAME", "vector_index")
+
 
 def setup_logging():
     logging.basicConfig(

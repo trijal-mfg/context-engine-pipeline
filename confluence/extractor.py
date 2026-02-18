@@ -5,8 +5,8 @@ import asyncio
 from typing import Dict, Any, List
 from datetime import datetime, timezone
 
-from confluence_client import ConfluenceClient
-from storage import MongoStorage
+from .confluence_client import ConfluenceClient
+from .storage import MongoStorage
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +48,10 @@ class Extractor:
             "updated_at": datetime.utcnow().isoformat() + "Z"
         }
 
-    async def process_page(self, page: Dict[str, Any]):
+    async def process_page(self, page: Dict[str, Any]) -> Optional[tuple[Dict[str, Any], str]]:
         """
         Process a single page: compare version, save if necessary.
+        Returns (metadata, content) if the page was updated/saved, None otherwise.
         """
         page_id = str(page["id"])
         new_version = page.get("version", {}).get("number", 1)
@@ -62,7 +63,7 @@ class Extractor:
             if existing_meta.get("version") == new_version:
                 logger.info(f"Skipping page {page_id} (version {new_version} up to date)")
                 self.stats["skipped"] += 1
-                return
+                return None
 
         # Extract content
         try:
@@ -86,13 +87,17 @@ class Extractor:
             logger.info(f"Updated page {page_id} to version {new_version}")
             self.stats["updated"] += 1
             
+            return metadata, body
+            
         except Exception as e:
             logger.error(f"Failed to process page {page_id}: {e}")
             self.stats["errors"] += 1
+            return None
 
-    async def run(self):
+    async def yield_updates(self):
         """
-        Main execution loop.
+        Yields (metadata, content) for each new or updated page found.
+        Updates the last sync date after processing.
         """
         # Ensure indexes
         await self.storage.ensure_indexes()
@@ -103,7 +108,9 @@ class Extractor:
         try:
             async for page in self.client.get_updated_pages(last_sync):
                 self.stats["fetched"] += 1
-                await self.process_page(page)
+                result = await self.process_page(page)
+                if result:
+                    yield result
                 
             # Update sync state
             new_sync_date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
@@ -113,4 +120,10 @@ class Extractor:
             logger.error(f"System-level failure during sync: {e}")
             raise
 
+    async def run(self):
+        """
+        Main execution loop (Legacy/compatibility mode).
+        """
+        async for _ in self.yield_updates():
+            pass
         return self.stats

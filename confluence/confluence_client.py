@@ -4,7 +4,7 @@ import asyncio
 from typing import AsyncGenerator, Dict, Any
 from urllib.parse import urljoin
 
-from config import (
+from .config import (
     CONFLUENCE_URL,
     CONFLUENCE_USERNAME,
     CONFLUENCE_API_TOKEN,
