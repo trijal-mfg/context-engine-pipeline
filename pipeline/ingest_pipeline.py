@@ -9,8 +9,9 @@ from chunking.chunker import Chunker, Chunk
 from embedding.embedder import OllamaEmbedder
 from embedding.mongo_vector_store import MongoVectorStore
 
+from confluence.config import setup_logging
 # Check if we should use existing logging setup or configure here
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+setup_logging()
 logger = logging.getLogger(__name__)
 
 class IngestPipeline:
@@ -69,7 +70,7 @@ class IngestPipeline:
                 embeddings = self.embedder.embed_texts(texts_to_embed)
                 
                 # 5. Store
-                self.vector_store.upsert(chunks, embeddings)
+                await self.vector_store.upsert(chunks, embeddings)
                 
                 processed_count += 1
                 

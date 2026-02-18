@@ -31,14 +31,8 @@ class MongoVectorStore(VectorStore):
             )
             
         if operations:
-            logger.info(f"Attempting to upsert {len(operations)} operations to {self.collection.name}")
-            try:
-                result = await self.collection.bulk_write(operations)
-                logger.info(f"Upserted {result.upserted_count + result.modified_count} chunks to MongoDB. Match count: {result.matched_count}")
-            except Exception as e:
-                logger.error(f"Error during bulk_write: {e}", exc_info=True)
-        else:
-            logger.warning("No operations to upsert.")
+            result = await self.collection.bulk_write(operations)
+            logger.info(f"Upserted {result.upserted_count + result.modified_count} chunks to MongoDB.")
 
     async def search(self, query_embedding: List[float], limit: int = 5) -> List[Chunk]:
         pipeline = [

@@ -88,6 +88,10 @@ class Chunker:
                 "version": doc.version,
                 "section_heading": section.heading,
                 "section_level": section.level,
-                "block_types": [b.type.value for b in blocks]
+                "block_types": [b.type.value for b in blocks],
+                # Hierarchy metadata
+                "parent_id": doc.metadata.get("parent_id"),
+                "ancestor_ids": doc.metadata.get("ancestor_ids", []),
+                "depth": doc.metadata.get("depth", 0)
             }
         )
