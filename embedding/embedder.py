@@ -13,7 +13,7 @@ class Embedder(ABC):
 
 
 import httpx
-from confluence.config import OLLAMA_BASE_URL, OLLAMA_MODEL
+from confluence.config import OLLAMA_BASE_URL, OLLAMA_EMBEDDING_MODEL
 
 class OpenAIEmbedder(Embedder):
     def __init__(self, api_key: str = None, model: str = "text-embedding-3-small"):
@@ -30,7 +30,7 @@ class OpenAIEmbedder(Embedder):
         return 1536
 
 class OllamaEmbedder(Embedder):
-    def __init__(self, base_url: str = OLLAMA_BASE_URL, model: str = OLLAMA_MODEL):
+    def __init__(self, base_url: str = OLLAMA_BASE_URL, model: str = OLLAMA_EMBEDDING_MODEL):
         self.base_url = base_url
         self.model = model
         
@@ -50,6 +50,6 @@ class OllamaEmbedder(Embedder):
     @property
     def dimension(self) -> int:
         # Check model dimension? For nomic-embed-text it's 768.
-        # We could query API, but let's assume standard for now or fetch one.
+        #TODO implent properly
         return 768 
 

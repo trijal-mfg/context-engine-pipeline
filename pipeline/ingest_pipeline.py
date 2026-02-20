@@ -7,7 +7,8 @@ from confluence.storage import MongoStorage
 from transform.confluence_to_canonical import AdfToCanonicalConverter
 from chunking.chunker import Chunker, Chunk
 from embedding.embedder import OllamaEmbedder
-from embedding.mongo_vector_store import MongoVectorStore
+from embedding.embedder import OllamaEmbedder
+from embedding.qdrant_vector_store import QdrantVectorStore
 
 from confluence.config import setup_logging
 setup_logging()
@@ -19,7 +20,7 @@ class IngestPipeline:
         self.converter = AdfToCanonicalConverter()
         self.chunker = Chunker()
         self.embedder = OllamaEmbedder()
-        self.vector_store = MongoVectorStore()
+        self.vector_store = QdrantVectorStore()
 
     async def process_page(self, metadata, content):
         page_id = metadata.get("page_id")

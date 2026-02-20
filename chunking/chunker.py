@@ -92,6 +92,7 @@ class Chunker:
                 # Hierarchy metadata
                 "parent_id": doc.metadata.get("parent_id"),
                 "ancestor_ids": doc.metadata.get("ancestor_ids", []),
-                "depth": doc.metadata.get("depth", 0)
+                "depth": doc.metadata.get("depth", 0),
+                "space_key": doc.metadata.get("space_key")
             }
         )

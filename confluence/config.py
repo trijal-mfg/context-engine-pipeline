@@ -29,11 +29,12 @@ CONFLUENCE_CLIENT_RETRIES = int(os.getenv("CONFLUENCE_CLIENT_RETRIES", 3))
 
 # Ollama Settings
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "nomic-embed-text")
+OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
 
 # Vector Store Settings
-MONGO_VECTOR_COLLECTION = os.getenv("MONGO_VECTOR_COLLECTION", "vector_store")
-MONGO_VECTOR_INDEX_NAME = os.getenv("MONGO_VECTOR_INDEX_NAME", "vector_index")
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
+QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "confluence_chunks")
 
 
 def setup_logging():
