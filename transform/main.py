@@ -53,32 +53,23 @@ class TransformOrchestrator:
 
     async def process_document(self, source_doc: Dict[str, Any]):
         page_id = source_doc.get("page_id")
-        doc_id = source_doc.get("_id") # This is likely page_id_vX
+        doc_id = source_doc.get("_id")
         
         logger.info(f"Processing document: {doc_id}")
 
         try:
-            # 2. Build Canonical Document (Assuming input is reasonably shaped)
-            # In a real pipeline, we'd use Pydantic here too: CanonicalDocument(**source_doc)
             canonical_doc = source_doc 
-            
-            # 3. Dynamic Extraction (Combine Classify & Transform)
-            # Ensure schema models are loaded
+
             available_models = await self.schema_loader.get_all_models()
             
             if not available_models:
                 logger.error("No schemas found in database. Cannot proceed.")
                 return
 
-            # Execute transform
-            # This returns a Pydantic model instance (e.g. Runbook(...))
             extraction_result = await self.transformer.transform(canonical_doc, available_models)
             
-            # 4. Save Record
-            # Inspect the result to determine what schema was picked
             schema_id = getattr(extraction_result, "schema_type", "unknown")
             
-            # Convert Pydantic model to Dict for storage
             transformed_content = extraction_result.model_dump()
             
             logger.info(f"Extracted {doc_id} as {schema_id}")
@@ -92,7 +83,6 @@ class TransformOrchestrator:
                 "source_id": canonical_doc.get("source_id", "unknown"),
                 "page_version": canonical_doc.get("page_version", "unknown"),
                 "schema_id": schema_id,
-                # "schema_version": ... (could retrieve from schema definition if needed)
                 "transform_model": OLLAMA_MODEL_TRANSFORMER,
                 "transform_hash": transform_hash,
                 "content": transformed_content,

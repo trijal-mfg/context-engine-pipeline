@@ -20,16 +20,12 @@ class Classifier:
         Returns (schema_id, confidence).
         """
         
-        # Create a concise representation of the document for the LLM
-        # We don't want to send the entire content if it's huge, just enough to classify.
-        # But for robustness, we send title and a significant chunk of content.
-        
-        doc_sample = {
-            "title": canonical_doc.get("title"),
-            "source": canonical_doc.get("source"),
-            "content_snippet": self._get_content_snippet(canonical_doc)
-        }
-
+        # doc = {
+        #     "title": canonical_doc.get("title"),
+        #     "source": canonical_doc.get("source"),
+        #     "content_snippet": self._get_content_snippet(canonical_doc)
+        # }
+        doc=canonical_doc
         prompt = f"""
         You are a document classifier for a technical documentation system.
         Your task is to classify the following document into EXACTLY ONE of the provided schema IDs.
@@ -38,7 +34,7 @@ class Classifier:
         {json.dumps(available_schemas, indent=2)}
 
         Document to Classify:
-        {json.dumps(doc_sample, indent=2)}
+        {json.dumps(canonical_doc, indent=2)}
 
         Instructions:
         1. Analyze the document content and structure.
