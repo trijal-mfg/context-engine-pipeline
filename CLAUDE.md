@@ -63,47 +63,20 @@ All config lives in `confluence/config.py`, loaded from `.env` via `python-doten
 
 ## Confluence Docs
 
-4,775 Confluence pages are exported as clean Markdown in `docs/`. Use these to answer questions about the company's processes, features, and systems.
+4,775 Confluence pages exported as clean Markdown in `docs/`. Use these to answer questions about the company's processes, features, and systems.
 
-### File format
+**See `docs-guide.md` for the full search guide** — space keys, doc type prefixes, search patterns by question type, and recency filtering.
 
-Each file is named `{page_id}_{title}.md` and starts with YAML frontmatter:
-```
----
-title: Page Title
-space: SPACE_KEY
-page_id: 123456789
-url: https://...
----
-```
+### Quick reference
+- Files named `{page_id}_{title}.md` with YAML frontmatter (`title`, `space`, `page_id`, `url`)
+- 18.6 MB / ~4.8M tokens total — always grep first, then read 2–5 matching files
+- Higher page ID = more recently created (>3B = 2023–2025, <1B = pre-2021)
 
-### How to find information
-
-**Search by keyword** — always start here:
 ```bash
-# Find files containing a term
-grep -ril "deployment process" docs/
-
-# Find with context
-grep -n "keyword" docs/1234_Some_Page.md
+grep -ril "KEYWORD" docs/ | sort -t_ -k1 -rn | head -10   # keyword search, newest first
+grep -rl "^space: SRE" docs/ | xargs grep -il "KEYWORD"    # filter by space then keyword
+ls docs/*RCA*.md | sort -t_ -k1 -rn | head -10             # recent RCAs
 ```
-
-**Search titles only** (faster for topic lookup):
-```bash
-grep -rl "keyword" docs/ | head -20
-```
-
-**Read a specific page** — use the Read tool on the file path returned by grep.
-
-**Browse by space** — space keys are in the frontmatter. To list all pages from a space:
-```bash
-grep -rl "^space: ENG" docs/
-```
-
-### Scale
-- 4,775 files, 18.6 MB total — too large to read all at once
-- Always grep first to narrow down to 1–5 relevant files, then read those
-- A typical page is 2–10 KB; reading 5–10 pages at once is fine
 
 ## Architecture
 
