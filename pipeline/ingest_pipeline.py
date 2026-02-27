@@ -3,7 +3,7 @@ import logging
 import sys
 from typing import List
 
-from confluence.storage import MongoStorage
+from confluence.local_storage import LocalStorage
 from transform.confluence_to_canonical import AdfToCanonicalConverter
 from chunking.chunker import Chunker, Chunk
 from embedding.embedder import OllamaEmbedder
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class IngestPipeline:
     def __init__(self):
-        self.storage = MongoStorage()
+        self.storage = LocalStorage()
         self.converter = AdfToCanonicalConverter()
         self.chunker = Chunker()
         self.embedder = OllamaEmbedder()

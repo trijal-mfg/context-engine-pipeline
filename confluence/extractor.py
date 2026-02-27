@@ -6,14 +6,14 @@ from typing import Dict, Any, List
 from datetime import datetime, timezone
 
 from .confluence_client import ConfluenceClient
-from .storage import MongoStorage
+from .local_storage import LocalStorage
 
 logger = logging.getLogger(__name__)
 
 class Extractor:
     def __init__(self):
         self.client = ConfluenceClient()
-        self.storage = MongoStorage()
+        self.storage = LocalStorage()
         self.stats = {
             "fetched": 0,
             "skipped": 0,

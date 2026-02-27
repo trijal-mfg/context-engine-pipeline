@@ -6,11 +6,10 @@ from dotenv import load_dotenv, find_dotenv
 # Load environment variables from .env file
 load_dotenv(find_dotenv())
 
-# MongoDB Settings
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "confluence_ingestion")
+# Local Storage Settings
+LOCAL_STORAGE_PATH = os.getenv("LOCAL_STORAGE_PATH", "data/confluence")
 
-# Concfluence Settings
+# Confluence Settings
 CONFLUENCE_URL = os.getenv("CONFLUENCE_URL")
 CONFLUENCE_USERNAME = os.getenv("CONFLUENCE_USERNAME")
 CONFLUENCE_API_TOKEN = os.getenv("CONFLUENCE_API_TOKEN")
