@@ -71,6 +71,41 @@ class QdrantVectorStore(VectorStore):
         )
         logger.info(f"Upserted {len(points)} chunks to Qdrant collection '{self.collection_name}'")
 
+    async def get_adjacent_chunks(self, doc_id: str, center_index: int, window: int = 2) -> List[Chunk]:
+        from_idx = max(0, center_index - window)
+        to_idx = center_index + window
+
+        query_filter = models.Filter(
+            must=[
+                models.FieldCondition(key="doc_id", match=models.MatchValue(value=doc_id)),
+                models.FieldCondition(key="chunk_index", range=models.Range(gte=from_idx, lte=to_idx)),
+            ]
+        )
+
+        results, _ = await self.client.scroll(
+            collection_name=self.collection_name,
+            scroll_filter=query_filter,
+            limit=window * 2 + 1,
+        )
+
+        chunks = []
+        for point in results:
+            payload = point.payload
+            if payload.get("chunk_index") == center_index:
+                continue  # exclude the center chunk itself
+            chunk = Chunk(
+                id=payload.get("chunk_id"),
+                doc_id=payload.get("doc_id"),
+                chunk_index=payload.get("chunk_index"),
+                total_chunks=0,
+                text=payload.get("text"),
+                metadata={k: v for k, v in payload.items() if k not in ["chunk_id", "doc_id", "chunk_index", "text"]},
+            )
+            chunks.append(chunk)
+
+        chunks.sort(key=lambda c: c.chunk_index)
+        return chunks
+
     async def search(self, query_embedding: List[float], limit: int = 5, space_key: Optional[str] = None) -> List[Chunk]:
         # Create filter if space_key is provided
         query_filter = None
@@ -84,15 +119,15 @@ class QdrantVectorStore(VectorStore):
                 ]
             )
 
-        results = await self.client.search(
+        response = await self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_embedding,
+            query=query_embedding,
             limit=limit,
-            query_filter=query_filter
+            query_filter=query_filter,
         )
 
         chunks = []
-        for point in results:
+        for point in response.points:
             payload = point.payload
             
             # Reconstruct Chunk object

@@ -13,6 +13,10 @@ class VectorStore(ABC):
     def search(self, query_embedding: List[float], limit: int = 5) -> List[Chunk]:
         pass
 
+    @abstractmethod
+    async def get_adjacent_chunks(self, doc_id: str, center_index: int, window: int = 2) -> List[Chunk]:
+        pass
+
 class InMemoryVectorStore(VectorStore):
     def __init__(self):
         self.store = {} # id -> (chunk, embedding)
@@ -28,3 +32,6 @@ class InMemoryVectorStore(VectorStore):
     def search(self, query_embedding: List[float], limit: int = 5) -> List[Chunk]:
         # Dummy search
         return [data["chunk"] for data in list(self.store.values())[:limit]]
+
+    async def get_adjacent_chunks(self, doc_id: str, center_index: int, window: int = 2) -> List[Chunk]:
+        return []
