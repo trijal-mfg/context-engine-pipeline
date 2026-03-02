@@ -2,5 +2,5 @@ motor
 pymongo
 python-dotenv
 httpx
-
 qdrant-client
+mcp
