@@ -106,6 +106,32 @@ class QdrantVectorStore(VectorStore):
         chunks.sort(key=lambda c: c.chunk_index)
         return chunks
 
+    async def list_spaces(self) -> List[dict]:
+        """Return all unique spaces stored in the collection as a list of dicts with space_key and space_name."""
+        unique: dict[str, str] = {}
+        offset = None
+
+        while True:
+            results, next_offset = await self.client.scroll(
+                collection_name=self.collection_name,
+                scroll_filter=None,
+                with_payload=["space_key", "space_name"],
+                limit=1000,
+                offset=offset,
+            )
+
+            for point in results:
+                payload = point.payload or {}
+                key = payload.get("space_key")
+                if key and key not in unique:
+                    unique[key] = payload.get("space_name", "")
+
+            if next_offset is None:
+                break
+            offset = next_offset
+
+        return [{"space_key": k, "space_name": v} for k, v in sorted(unique.items())]
+
     async def search(self, query_embedding: List[float], limit: int = 5, space_key: Optional[str] = None) -> List[Chunk]:
         # Create filter if space_key is provided
         query_filter = None

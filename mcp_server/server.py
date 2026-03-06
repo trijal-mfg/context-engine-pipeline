@@ -4,9 +4,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-# Must come before any local imports — adds project root to sys.path so that
-# packages like `chunking`, `retrieval`, `embedding`, etc. are resolvable
-# regardless of the working directory when this script is invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from mcp.server.fastmcp import FastMCP
@@ -62,6 +59,23 @@ def _serialize_result(result: RetrievalResult) -> dict:
             for rc in result.results
         ],
     }
+
+
+@mcp.tool()
+async def list_confluence_spaces() -> str:
+    """List all Confluence spaces available in the knowledge base.
+
+    Use this before searching to discover valid space keys. Pass a space_key
+    from the results to search_confluence to scope the search to that space.
+
+    Returns:
+        JSON array of objects, each with:
+        - space_key: short identifier (e.g. "ENG", "OPS") to use with search_confluence
+        - space_name: human-readable space name
+    """
+    logger.info("list_confluence_spaces called")
+    spaces = await _vector_store.list_spaces()
+    return json.dumps(spaces, ensure_ascii=False, indent=2)
 
 
 @mcp.tool()
